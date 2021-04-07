@@ -57,6 +57,21 @@ def get_user_data(user_id):
             return {"error": True, "type": "JSONFileError"}
 
 
+def get_user_dm_link(user_id):
+    data = None
+
+    with open('data/users.json', 'r') as user_collection_file:
+        try:
+            data = json.load(user_collection_file)
+            for saved_user in data:
+                if saved_user["id"] == user_id:
+                    return {"error": False, "type": "UserFound", "link": saved_user["link"]}
+            return {"error": True, "type": "UserNotFound"}
+        except:
+            print("Error occurred when trying to open the file users.json")
+            return {"error": True, "type": "JSONFileError"}
+
+
 def update_name(user_id, name):
     data = None
 
