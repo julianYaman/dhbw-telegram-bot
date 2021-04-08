@@ -8,7 +8,7 @@ def login_user(user):
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
-                if saved_user["id"] == user.id:
+                if saved_user["id"] == user["id"]:
                     return {"error": False, "type": "UserFound", "name": saved_user["name"]}
             return {"error": True, "type": "UserNotFound"}
         except:
@@ -22,16 +22,17 @@ def register_user(user):
     with open('data/users.json', 'r') as user_collection_file:
         try:
             data = json.load(user_collection_file)
-            for saved_user in data:
-                if saved_user["id"] == user.id:
-                    return {"error": True, "type": "AlreadyRegistered"}
         except:
             return {"error": True, "type": "JSONFileError"}
 
+        for saved_user in data:
+            if saved_user["id"] == user["id"]:
+                return {"error": True, "type": "AlreadyRegistered"}
+
     with open('data/users.json', 'w') as user_collection_file:
         try:
-            new_user = {'id': user.id, 'birthday': user.birthday, 'car': user.car, 'link': user.link,
-                        'name': user.full_name, 'traveler': False, 'driver': False}
+            new_user = {'id': user["id"], 'birthday': user["birthday"], 'car': user["car"], 'link': user["link"],
+                        'name': user["name"], 'traveler': False, 'driver': False}
 
             data.append(new_user)
             json.dump(data, user_collection_file)
