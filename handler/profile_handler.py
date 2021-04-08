@@ -43,6 +43,21 @@ def register_user(user):
             return {"error": True, "type": "JSONFileError"}
 
 
+def is_already_registered(user_id):
+    data = None
+
+    with open('data/users.json', 'r') as user_collection_file:
+        try:
+            data = json.load(user_collection_file)
+            for saved_user in data:
+                if saved_user["id"] == user_id:
+                    return {"error": False, "type": "UserFound", "name": saved_user["name"]}
+            return {"error": False, "type": "UserNotFound"}
+        except:
+            print("Error occurred when trying to open the file users.json")
+            return {"error": True, "type": "JSONFileError"}
+
+
 def get_user_data(user_id):
     data = None
 

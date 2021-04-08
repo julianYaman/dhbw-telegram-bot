@@ -1,10 +1,12 @@
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from handler.profile_handler import *
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
 
-chat_id = ''
+bot = None
+START_QUERY_HANDLER, ASK_NAME, ASK_BIRTHDAY, ASK_CAR = range(4)  # Just some placeholders
 
 questions = [
+    "Wie lautet dein Name als Fahrer/Mitfahrer?",
     "Wie lautet dein Geburtsdatum? (DD.MM.YYYY)",
     "Was fährst du für ein Auto?"
 ]
@@ -18,25 +20,6 @@ registration_data = {
     "link": "",
     "name": ""
 }
-
-
-def login(update: Update, context: CallbackContext) -> None:
-    login_user_response = login_user(update.effective_user)
-    if login_user_response["error"] is True:
-        if login_user_response["type"] == "UserNotFound":
-            update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
-                                      " Bot nutzen zu können")
-        elif login_user_response["type"] == "JSONFileError":
-            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
-        else:
-            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
-    else:
-        if login_user_response["type"] == "UserFound":
-            update.message.reply_text(f"Du hast dich erfolgreich eingeloggt! Willkommen zurück, "
-                                      f"{login_user_response['name']}")
-            # TODO: Hier weitere User-Aktionen festlegen
-        else:
-            update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")
 
 
 def change_name(update: Update, context: CallbackContext) -> None:
@@ -56,60 +39,187 @@ def change_name(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
 
 
-def next_question(question_index):
-    question = questions[question_index]
-    return question
+def create_login(update: Update, context: CallbackContext):
+  button_labels = ["Registrieren", "Einloggen"]
+  button_list = []
+
+  for label in button_labels:
+     button_list.append(InlineKeyboardButton(label, callback_data=label))
+
+  reply_markup = InlineKeyboardMarkup(build_login(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+  context.bot.send_message(
+      chat_id=update.effective_chat.id,
+      text=f'Guten Tag {update.effective_user.first_name}, \n'
+           f'ich bin deine persönliche Mitfahrzentrale "likeuber"! \n\n'
+           f'Um die Mitfahrzentrale nutzen zu können, musst du dich vorerst registrieren oder einloggen. \n\n',
+      reply_markup=reply_markup
+  )
+
+  return START_QUERY_HANDLER
 
 
-def reply(update, context):
-    user_input = update.message.text
+def build_login(buttons, n_cols, header_buttons=None, footer_buttons=None):
+  menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+  if header_buttons:
+    menu.insert(0, header_buttons)
+  if footer_buttons:
+    menu.append(footer_buttons)
+  return menu
 
-    global question_counter
+
+def ask_name(update: Update, context: CallbackContext):
     global registration_data
-
-    if question_counter == 0:
-        registration_data["name"] = user_input
-    elif question_counter == 1:
-        registration_data["birthday"] = user_input
-    else:
-        registration_data["car"] = user_input
-        registration_data["id"] = update.effective_user.id
-        registration_data["link"] = update.effective_user.link
-
-        # Register user with error handling
-        register_user_response = register_user(registration_data)
-        if register_user_response["error"] is True:
-            if register_user_response["type"] == "AlreadyRegistered":
-                update.message.reply_text("Du hast dich bereits registriert. Bitte versuche dich einzuloggen.")
-            elif register_user_response["type"] == "JSONFileError":
-                update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
-            else:
-                update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
-        else:
-            if register_user_response["type"] == "SuccessfullyRegistered":
-                update.message.reply_text("Glückwunsch! Du hast einen neuen Account erstellt.")
-                # TODO: Startmenü hier aufrufen!
-            else:
-                update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")
-
-    if question_counter < 2:
-        update.message.reply_text(next_question(question_counter))
-        question_counter += 1
-    else:
-        question_counter += 1
-
-
-def start_chat(update: Update, context: CallbackContext):
-    global chat_id
-    chat_id = update.message.chat.id
+    registration_data["name"] = update.message.text
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text=f'Guten Tag {update.effective_user.first_name}, \n'
-             f'ich bin deine persönliche Mitfahrzentrale "likeuber"! \n\n'
-             f'Um die Mitfahrzentrale nutzen zu können, musst du dich vorerst registrieren, dafür benötige ich diverse Daten von dir. \n\n'
-             f'Wie lautet dein Name als Fahrer/Mitfahrer?'
+        text=questions[1]
     )
+
+    return ASK_BIRTHDAY
+
+
+def ask_birthday(update: Update, context: CallbackContext):
+    global registration_data
+    registration_data["birthday"] = update.message.text
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=questions[2]
+    )
+
+    return ASK_CAR
+
+
+def ask_car(update: Update, context: CallbackContext):
+    global registration_data
+    registration_data["car"] = update.message.text
+
+    complete_registration(update, context)
+
+
+def complete_registration(update: Update, context: CallbackContext):
+    global registration_data
+    registration_data["id"] = update.effective_user.id
+    registration_data["link"] = update.effective_user.link
+
+    # Register user with error handling
+    register_user_response = register_user(registration_data)
+    if register_user_response["error"] is True:
+        if register_user_response["type"] == "JSONFileError":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Leider ist ein Fehler beim Aufrufen der Daten aufgetreten."
+            )
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Ein unbekannter Fehler ist aufgetreten."
+            )
+    else:
+        if register_user_response["type"] == "SuccessfullyRegistered":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Glückwunsch! Du hast einen neuen Account erstellt."
+            )
+            create_start_menu(update, context)
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Keine Ahnung was passiert ist, aber es hat funktioniert."
+            )
+
+
+def create_start_menu(update: Update, context: CallbackContext):
+    button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen"]
+    button_list = []
+
+    for label in button_labels:
+        button_list.append(InlineKeyboardButton(label, callback_data=label))
+
+    reply_markup = InlineKeyboardMarkup(build_start_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Startmenü",
+        reply_markup=reply_markup
+    )
+
+
+def build_start_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
+
+
+def query_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    if query.data == "Registrieren":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
+
+        if is_already_registered(update.effective_user.id)["type"] == "UserFound":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Du hast dich bereits registriert, du wirst nun eingeloggt."
+            )
+            create_start_menu(update, context)
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text=questions[0]
+            )
+
+            return ASK_NAME
+
+    elif query.data == "Einloggen":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+
+        if is_already_registered(update.effective_user.id)["type"] == "UserNotFound":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den Bot nutzen zu können."
+            )
+            create_login(update, context)
+        else:
+            login_user_response = login_user(update.effective_user)
+
+            if login_user_response["error"] is True:
+                if login_user_response["type"] == "JSONFileError":
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="Leider ist ein Fehler beim Aufrufen der Daten aufgetreten."
+                    )
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="Ein unbekannter Fehler ist aufgetreten."
+                    )
+            else:
+                if login_user_response["type"] == "UserFound":
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text=f"Du hast dich erfolgreich eingeloggt! Willkommen zurück, "
+                             f"{login_user_response['name']}"
+                    )
+                    create_start_menu(update, context)
+                else:
+                    context.bot.send_message(
+                        chat_id=update.effective_chat.id,
+                        text="Keine Ahnung was passiert ist, aber es hat funktioniert."
+                    )
+
+
+def cancel(update: Update, context: CallbackContext):
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Bye :-)"
+    )
+
+    return ConversationHandler.END
 
 
 def main():
@@ -123,23 +233,24 @@ def main():
       except:
           print("Error occurred when trying to open the file bot.json")
           quit()
-                                      
+
+    global bot
     bot = Updater(token=token, use_context=True)
-
-    bot.dispatcher.add_handler(CommandHandler('start', start_chat))
-
-    questions_handler = MessageHandler(Filters.text, reply)
-
-    bot.dispatcher.add_handler(questions_handler)
 
     bot.start_polling()
 
-    global question_counter
-    # Wait until registration is done --> remove questions_handler
-    while question_counter < 4:
-        if question_counter == 3:
-            bot.dispatcher.remove_handler(questions_handler)
-            question_counter += 1
+    login_handler = ConversationHandler(
+        entry_points=[CommandHandler('start', create_login)],
+        states={
+            START_QUERY_HANDLER: [CallbackQueryHandler(query_handler)],
+            ASK_NAME: [MessageHandler(Filters.text, ask_name)],
+            ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
+            ASK_CAR: [MessageHandler(Filters.text, ask_car)]
+        },
+        fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    bot.dispatcher.add_handler(login_handler)
 
     bot.idle()
 
