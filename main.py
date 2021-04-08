@@ -16,41 +16,24 @@ registration_data = {
     "birthday": "",
     "car": "",
     "link": "",
-    "name": "",
-    "traveler": False,
-    "driver": False
+    "name": ""
 }
 
+
 def login(update: Update, context: CallbackContext) -> None:
-    login_user_respone = login_user(update.effective_user)
-    if login_user_respone["error"] is True:
-        if login_user_respone["type"] == "UserNotFound":
+    login_user_response = login_user(update.effective_user)
+    if login_user_response["error"] is True:
+        if login_user_response["type"] == "UserNotFound":
             update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
                                       " Bot nutzen zu können")
-        elif login_user_respone["type"] == "JSONFileError":
+        elif login_user_response["type"] == "JSONFileError":
             update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
         else:
             update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
     else:
-        if login_user_respone["type"] == "UserFound":
+        if login_user_response["type"] == "UserFound":
             update.message.reply_text(f"Du hast dich erfolgreich eingeloggt! Willkommen zurück, "
-                                      f"{login_user_respone['name']}")
-            # TODO: Hier weitere User-Aktionen festlegen
-        else:
-            update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")               
-
-def register(update: Update, context: CallbackContext) -> None:
-    register_user_response = register_user(update.effective_user)
-    if register_user_response["error"] is True:
-        if register_user_response["type"] == "AlreadyRegistered":
-            update.message.reply_text("Du hast dich bereits registriert. Bitte versuche dich einzuloggen.")
-        elif register_user_response["type"] == "JSONFileError":
-            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
-        else:
-            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
-    else:
-        if register_user_response["type"] == "SuccessfullyRegistered":
-            update.message.reply_text("Glückwunsch! Du hast einen neuen Account erstellt.")
+                                      f"{login_user_response['name']}")
             # TODO: Hier weitere User-Aktionen festlegen
         else:
             update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")
@@ -90,6 +73,24 @@ def reply(update, context):
         registration_data["birthday"] = user_input
     else:
         registration_data["car"] = user_input
+        registration_data["id"] = update.effective_user.id
+        registration_data["link"] = update.effective_user.link
+
+        # Register user with error handling
+        register_user_response = register_user(registration_data)
+        if register_user_response["error"] is True:
+            if register_user_response["type"] == "AlreadyRegistered":
+                update.message.reply_text("Du hast dich bereits registriert. Bitte versuche dich einzuloggen.")
+            elif register_user_response["type"] == "JSONFileError":
+                update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
+            else:
+                update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
+        else:
+            if register_user_response["type"] == "SuccessfullyRegistered":
+                update.message.reply_text("Glückwunsch! Du hast einen neuen Account erstellt.")
+                # TODO: Startmenü hier aufrufen!
+            else:
+                update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")
 
     if question_counter < 2:
         update.message.reply_text(next_question(question_counter))
@@ -134,13 +135,11 @@ def main():
     bot.start_polling()
 
     global question_counter
+    # Wait until registration is done --> remove questions_handler
     while question_counter < 4:
         if question_counter == 3:
             bot.dispatcher.remove_handler(questions_handler)
             question_counter += 1
-
-            bot.bot.sendMessage(chat_id=chat_id, text='Danke für deine Registrierung!')
-            print(registration_data)
 
     bot.idle()
 
