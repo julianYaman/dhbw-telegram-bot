@@ -1,7 +1,25 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
 from handler.profile_handler import *
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 
+chat_id = ''
+
+questions = [
+    "Wie lautet dein Geburtsdatum? (DD.MM.YYYY)",
+    "Was fährst du für ein Auto?"
+]
+
+question_counter = 0
+
+registration_data = {
+    "id": "",
+    "birthday": "",
+    "car": "",
+    "link": "",
+    "name": "",
+    "traveler": False,
+    "driver": False
+}
 
 def login(update: Update, context: CallbackContext) -> None:
     login_user_respone = login_user(update.effective_user)
@@ -19,8 +37,7 @@ def login(update: Update, context: CallbackContext) -> None:
                                       f"{login_user_respone['name']}")
             # TODO: Hier weitere User-Aktionen festlegen
         else:
-            update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")
-
+            update.message.reply_text("Keine Ahnung was passiert ist, aber es hat funktioniert.")               
 
 def register(update: Update, context: CallbackContext) -> None:
     register_user_response = register_user(update.effective_user)
@@ -56,21 +73,77 @@ def change_name(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
 
 
-# TODO: Ordentliche 'main' Funktion integrieren (s. Tutorials)
-token = None
+def next_question(question_index):
+    question = questions[question_index]
+    return question
 
-with open('data/bot.json', 'r') as config_file:
-    try:
-        data = json.load(config_file)
-        token = data['token']
-    except:
-        print("Error occurred when trying to open the file bot.json")
 
-updater = Updater(token)
+def reply(update, context):
+    user_input = update.message.text
 
-updater.dispatcher.add_handler(CommandHandler('login', login))
-updater.dispatcher.add_handler(CommandHandler('register', register))
-updater.dispatcher.add_handler(CommandHandler('changename', change_name))
+    global question_counter
+    global registration_data
 
-updater.start_polling()
-updater.idle()
+    if question_counter == 0:
+        registration_data["name"] = user_input
+    elif question_counter == 1:
+        registration_data["birthday"] = user_input
+    else:
+        registration_data["car"] = user_input
+
+    if question_counter < 2:
+        update.message.reply_text(next_question(question_counter))
+        question_counter += 1
+    else:
+        question_counter += 1
+
+
+def start_chat(update: Update, context: CallbackContext):
+    global chat_id
+    chat_id = update.message.chat.id
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=f'Guten Tag {update.effective_user.first_name}, \n'
+             f'ich bin deine persönliche Mitfahrzentrale "likeuber"! \n\n'
+             f'Um die Mitfahrzentrale nutzen zu können, musst du dich vorerst registrieren, dafür benötige ich diverse Daten von dir. \n\n'
+             f'Wie lautet dein Name als Fahrer/Mitfahrer?'
+    )
+
+
+def main():
+    
+    token = None
+
+    with open('data/bot.json', 'r') as config_file:
+      try:
+          data = json.load(config_file)
+          token = data['token']
+      except:
+          print("Error occurred when trying to open the file bot.json")
+          quit()
+                                      
+    bot = Updater(token=token, use_context=True)
+
+    bot.dispatcher.add_handler(CommandHandler('start', start_chat))
+
+    questions_handler = MessageHandler(Filters.text, reply)
+
+    bot.dispatcher.add_handler(questions_handler)
+
+    bot.start_polling()
+
+    global question_counter
+    while question_counter < 4:
+        if question_counter == 3:
+            bot.dispatcher.remove_handler(questions_handler)
+            question_counter += 1
+
+            bot.bot.sendMessage(chat_id=chat_id, text='Danke für deine Registrierung!')
+            print(registration_data)
+
+    bot.idle()
+
+
+if __name__ == "__main__":
+    main()
