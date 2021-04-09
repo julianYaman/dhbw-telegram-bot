@@ -3,7 +3,8 @@ from handler.profile_handler import *
 from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters, CallbackQueryHandler, ConversationHandler
 
 bot = None
-START_QUERY_HANDLER, ASK_NAME, ASK_BIRTHDAY, ASK_CAR = range(4)  # Just some placeholders
+# Just some placeholders
+LOGIN_QUERY_HANDLER, ASK_NAME, ASK_BIRTHDAY, ASK_CAR, START_MENU_QUERY_HANDLER, CHANGE_NAME, CHANGE_BIRTHDAY, CHANGE_CAR = range(8)
 
 questions = [
     "Wie lautet dein Name als Fahrer/Mitfahrer?",
@@ -22,21 +23,13 @@ registration_data = {
 }
 
 
-def change_name(update: Update, context: CallbackContext) -> None:
-    # TODO: Value für neuen Namen abfangen
-    update_name_response = update_name(update.effective_user.id, 'Testname')
-    if update_name_response["error"] is True:
-        if update_name_response["type"] == "UserNotFound":
-            update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
-                                      " Bot nutzen zu können")
-        elif update_name_response["type"] == "JSONFileError":
-            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
-        else:
-            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
-    else:
-        if update_name_response["type"] == "UpdatedName":
-            # TODO: Neuen Usernamen hier einfügen
-            update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
+def cancel(update: Update, context: CallbackContext):
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Bye :-)"
+    )
+
+    return ConversationHandler.END
 
 
 def create_login(update: Update, context: CallbackContext):
@@ -55,7 +48,7 @@ def create_login(update: Update, context: CallbackContext):
       reply_markup=reply_markup
   )
 
-  return START_QUERY_HANDLER
+  return LOGIN_QUERY_HANDLER
 
 
 def build_login(buttons, n_cols, header_buttons=None, footer_buttons=None):
@@ -130,31 +123,7 @@ def complete_registration(update: Update, context: CallbackContext):
             )
 
 
-def create_start_menu(update: Update, context: CallbackContext):
-    button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen"]
-    button_list = []
-
-    for label in button_labels:
-        button_list.append(InlineKeyboardButton(label, callback_data=label))
-
-    reply_markup = InlineKeyboardMarkup(build_start_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
-    context.bot.send_message(
-        chat_id=update.effective_chat.id,
-        text="Startmenü",
-        reply_markup=reply_markup
-    )
-
-
-def build_start_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
-    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
-    if header_buttons:
-        menu.insert(0, header_buttons)
-    if footer_buttons:
-        menu.append(footer_buttons)
-    return menu
-
-
-def query_handler(update: Update, context: CallbackContext):
+def login_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
 
@@ -213,13 +182,67 @@ def query_handler(update: Update, context: CallbackContext):
                     )
 
 
-def cancel(update: Update, context: CallbackContext):
+def create_start_menu(update: Update, context: CallbackContext):
+    button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen"]
+    button_list = []
+
+    for label in button_labels:
+        button_list.append(InlineKeyboardButton(label, callback_data=label))
+
+    reply_markup = InlineKeyboardMarkup(build_start_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
     context.bot.send_message(
         chat_id=update.effective_chat.id,
-        text="Bye :-)"
+        text="Startmenü",
+        reply_markup=reply_markup
     )
 
-    return ConversationHandler.END
+    return START_MENU_QUERY_HANDLER
+
+
+def build_start_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
+
+
+def change_name(update: Update, context: CallbackContext):
+    # TODO: Value für neuen Namen abfangen
+    update_name_response = update_name(update.effective_user.id, 'Testname')
+    if update_name_response["error"] is True:
+        if update_name_response["type"] == "UserNotFound":
+            update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
+                                      " Bot nutzen zu können")
+        elif update_name_response["type"] == "JSONFileError":
+            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
+        else:
+            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
+    else:
+        if update_name_response["type"] == "UpdatedName":
+            # TODO: Neuen Usernamen hier einfügen
+            update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
+
+
+def change_birthday(update: Update, context: CallbackContext):
+    print("Geburtstag")
+
+
+def change_car(update: Update, context: CallbackContext):
+    print("Auto")
+
+
+def start_menu_query_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    if query.data == "Fahrer":
+        print("Fahrer")
+    elif query.data == "Mitfahrer":
+        print("Mitfahrer")
+    elif query.data == "Profil-Einstellungen":
+        print("Profil")
 
 
 def main():
@@ -239,18 +262,22 @@ def main():
 
     bot.start_polling()
 
-    login_handler = ConversationHandler(
+    conversation_handler = ConversationHandler(
         entry_points=[CommandHandler('start', create_login)],
         states={
-            START_QUERY_HANDLER: [CallbackQueryHandler(query_handler)],
+            LOGIN_QUERY_HANDLER: [CallbackQueryHandler(login_query_handler)],
             ASK_NAME: [MessageHandler(Filters.text, ask_name)],
             ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
-            ASK_CAR: [MessageHandler(Filters.text, ask_car)]
+            ASK_CAR: [MessageHandler(Filters.text, ask_car)],
+            START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
+            CHANGE_NAME: [MessageHandler(Filters.text, change_name)],
+            CHANGE_BIRTHDAY: [MessageHandler(Filters.text, change_birthday)],
+            CHANGE_CAR: [MessageHandler(Filters.text, change_car)],
         },
         fallbacks=[CommandHandler('cancel', cancel)]
     )
 
-    bot.dispatcher.add_handler(login_handler)
+    bot.dispatcher.add_handler(conversation_handler)
 
     bot.idle()
 
