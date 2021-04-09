@@ -4,11 +4,10 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from consts import *
 from handler.registration import *
 from handler.start_menu import *
+from handler.passenger import *
 from handler.profile_settings import *
 
 bot = None
-
-question_counter = 0
 
 
 def cancel(update: Update, context: CallbackContext):
@@ -81,6 +80,26 @@ def login_query_handler(update: Update, context: CallbackContext):
     return START_MENU_QUERY_HANDLER
 
 
+def passenger_preparation_query_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    if query.data == "Ja":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Bitte schicke deinen Live-Standort, damit die Suche nach Fahrern beginnen kann."
+        )
+        return PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP
+    elif query.data == "Nein":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Bitte schicke einen Standort deiner Wahl, damit die Suche nach Fahrern beginnen kann."
+        )
+        return PASSENGER_USE_OTHER_LOCATION_TO_PICKUP
+
+
 def profile_options_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
@@ -121,12 +140,12 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
         print("Fahrer")
     elif query.data == "Mitfahrer":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        print("Mitfahrer")
+        create_passenger_preparation_menu(update, context)
+        return PASSENGER_PREPARATION_QUERY_HANDLER
     elif query.data == "Profil-Einstellungen":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
         create_profile_options(update, context)
-
-    return PROFILE_OPTIONS_QUERY_HANDLER
+        return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def main():
@@ -153,6 +172,10 @@ def main():
             ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
             ASK_CAR: [MessageHandler(Filters.text, ask_car)],
             START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
+            PASSENGER_PREPARATION_QUERY_HANDLER: [CallbackQueryHandler(passenger_preparation_query_handler)],
+            PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP: [
+                MessageHandler(Filters.location, passenger_use_current_location, pass_job_queue=True)],
+            PASSENGER_USE_OTHER_LOCATION_TO_PICKUP: [MessageHandler(Filters.location, passenger_use_other_location)],
             PROFILE_OPTIONS_QUERY_HANDLER: [CallbackQueryHandler(profile_options_query_handler)],
             CHANGE_NAME: [MessageHandler(Filters.text, change_name)],
             CHANGE_BIRTHDAY: [MessageHandler(Filters.text, change_birthday)],
