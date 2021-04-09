@@ -7,7 +7,7 @@ temp_driver_search_counter = 2
 
 
 def create_passenger_preparation_menu(update: Update, context: CallbackContext):
-    button_labels = ["Ja", "Nein"]
+    button_labels = ["Ja", "Nein", "Zurück"]
     button_list = []
 
     for label in button_labels:
