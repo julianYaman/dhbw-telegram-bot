@@ -1,1 +1,13 @@
-[]
+[
+    {
+        "coordinates": {
+            "latitude": 47.923744,
+            "longitude": 9.257622
+        },
+        "driver": true,
+        "is_current_location": true,
+        "is_destination": false,
+        "passenger": false,
+        "user_id": 2848409341231234123
+    }
+]

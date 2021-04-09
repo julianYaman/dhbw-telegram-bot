@@ -7,6 +7,7 @@ from handler.start_menu import *
 from handler.driver import *
 from handler.passenger import *
 from handler.profile_settings import *
+from handler.location_handler import *
 
 bot = None
 
@@ -101,10 +102,16 @@ def driver_preparation_query_handler(update: Update, context: CallbackContext):
         return DRIVER_ENABLE_PASSENGERS_TO_SEARCH
     elif query.data == "Nein":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        delete_driver_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
     elif query.data == "Zurück":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        create_start_menu(update, context)
+        return START_MENU_QUERY_HANDLER
+    elif query.data == "Zurück ins Startmenü":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        delete_driver_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
 
@@ -208,7 +215,8 @@ def main():
             START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
             DRIVER_PREPARATION_QUERY_HANDLER: [CallbackQueryHandler(driver_preparation_query_handler)],
             DRIVER_SET_DESTINATION: [MessageHandler(Filters.location, driver_set_destination)],
-            DRIVER_ENABLE_PASSENGERS_TO_SEARCH: [MessageHandler(Filters.location, driver_enable_passengers_searching)],
+            DRIVER_ENABLE_PASSENGERS_TO_SEARCH: [MessageHandler(Filters.location, driver_enable_passengers_searching),
+                                                 CallbackQueryHandler(driver_preparation_query_handler)],
             PASSENGER_PREPARATION_QUERY_HANDLER: [CallbackQueryHandler(passenger_preparation_query_handler)],
             PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP: [
                 MessageHandler(Filters.location, passenger_use_current_location, pass_job_queue=True)],
