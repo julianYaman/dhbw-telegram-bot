@@ -35,7 +35,7 @@ def register_user(user):
                         'name': user["name"], 'traveler': False, 'driver': False}
 
             data.append(new_user)
-            json.dump(data, user_collection_file)
+            json.dump(data, user_collection_file, sort_keys=True, indent=4)
 
             return {"error": False, "type": "SuccessfullyRegistered"}
         except:
@@ -99,7 +99,7 @@ def update_name(user_id, name):
                     with open('data/users.json', 'w') as file:
                         try:
                             saved_user["name"] = name
-                            json.dump(data, file)
+                            json.dump(data, file, sort_keys=True, indent=4)
                             return {"error": False, "type": "UpdatedName"}
                         except:
                             print("Error occurred when trying to open the file users.json")
@@ -121,7 +121,7 @@ def update_birthday(user_id, birthday):
                     with open('data/users.json', 'w') as file:
                         try:
                             saved_user["birthday"] = birthday
-                            json.dump(data, file)
+                            json.dump(data, file, sort_keys=True, indent=4)
                             return {"error": False, "type": "UpdatedBirthday"}
                         except:
                             print("Error occurred when trying to open the file users.json")
@@ -143,7 +143,7 @@ def update_car(user_id, car):
                     with open('data/users.json', 'w') as file:
                         try:
                             saved_user["car"] = car
-                            json.dump(data, file)
+                            json.dump(data, file, sort_keys=True, indent=4)
                             return {"error": False, "type": "UpdatedCar"}
                         except:
                             print("Error occurred when trying to open the file users.json")

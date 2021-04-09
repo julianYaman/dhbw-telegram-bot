@@ -234,30 +234,65 @@ def build_profile_options(buttons, n_cols, header_buttons=None, footer_buttons=N
 
 
 def change_name(update: Update, context: CallbackContext):
-    # TODO: Value für neuen Namen abfangen
-    update_name_response = update_name(update.effective_user.id, 'Testname')
+    update_name_response = update_name(update.effective_user.id, update.message.text)
     if update_name_response["error"] is True:
         if update_name_response["type"] == "UserNotFound":
             update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
                                       " Bot nutzen zu können")
+            create_profile_options(update, context)
         elif update_name_response["type"] == "JSONFileError":
             update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
+            create_profile_options(update, context)
         else:
             update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
+            create_profile_options(update, context)
     else:
         if update_name_response["type"] == "UpdatedName":
-            # TODO: Neuen Usernamen hier einfügen
-            update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
+            update.message.reply_text(f"Du hast deinen Namen erfolgreich in {update.message.text} geändert")
+            create_profile_options(update, context)
+
     return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def change_birthday(update: Update, context: CallbackContext):
-    print("Geburtstag")
+    update_birthday_response = update_birthday(update.effective_user.id, update.message.text)
+    if update_birthday_response["error"] is True:
+        if update_birthday_response["type"] == "UserNotFound":
+            update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
+                                      " Bot nutzen zu können")
+            create_profile_options(update, context)
+        elif update_birthday_response["type"] == "JSONFileError":
+            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
+            create_profile_options(update, context)
+        else:
+            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
+            create_profile_options(update, context)
+    else:
+        if update_birthday_response["type"] == "UpdatedBirthday":
+            update.message.reply_text(f"Dein Geburtsdatum ist nun der {update.message.text}")
+            create_profile_options(update, context)
+
     return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def change_car(update: Update, context: CallbackContext):
-    print("Auto")
+    update_car_response = update_car(update.effective_user.id, update.message.text)
+    if update_car_response["error"] is True:
+        if update_car_response["type"] == "UserNotFound":
+            update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
+                                      " Bot nutzen zu können")
+            create_profile_options(update, context)
+        elif update_car_response["type"] == "JSONFileError":
+            update.message.reply_text("Leider ist ein Fehler beim Aufrufen der Daten aufgetreten.")
+            create_profile_options(update, context)
+        else:
+            update.message.reply_text("Ein unbekannter Fehler ist aufgetreten.")
+            create_profile_options(update, context)
+    else:
+        if update_car_response["type"] == "UpdatedCar":
+            update.message.reply_text(f"Du hast dein Auto zu \"{update.message.text}\" geändert")
+            create_profile_options(update, context)
+
     return PROFILE_OPTIONS_QUERY_HANDLER
 
 
@@ -266,15 +301,30 @@ def profile_options_query_handler(update: Update, context: CallbackContext):
     query.answer()
 
     if query.data == "Name ändern":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Wie ist dein Name?"
+        )
         return CHANGE_NAME
     elif query.data == "Geburtsdatum ändern":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Wann wurdest du geboren?"
+        )
         return CHANGE_BIRTHDAY
     elif query.data == "Auto ändern":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Was für ein Auto fährst du?"
+        )
         return CHANGE_CAR
     elif query.data == "Zurück":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         create_start_menu(update, context)
-
-    return START_MENU_QUERY_HANDLER
+        return START_MENU_QUERY_HANDLER
 
 
 def start_menu_query_handler(update: Update, context: CallbackContext):
@@ -282,8 +332,10 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
     query.answer()
 
     if query.data == "Fahrer":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         print("Fahrer")
     elif query.data == "Mitfahrer":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         print("Mitfahrer")
     elif query.data == "Profil-Einstellungen":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
