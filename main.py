@@ -4,7 +4,8 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandle
 
 bot = None
 # Just some placeholders
-LOGIN_QUERY_HANDLER, ASK_NAME, ASK_BIRTHDAY, ASK_CAR, START_MENU_QUERY_HANDLER, CHANGE_NAME, CHANGE_BIRTHDAY, CHANGE_CAR = range(8)
+LOGIN_QUERY_HANDLER, ASK_NAME, ASK_BIRTHDAY, ASK_CAR, START_MENU_QUERY_HANDLER, \
+PROFILE_OPTIONS_QUERY_HANDLER, CHANGE_NAME, CHANGE_BIRTHDAY, CHANGE_CAR = range(9)
 
 questions = [
     "Wie lautet dein Name als Fahrer/Mitfahrer?",
@@ -181,6 +182,8 @@ def login_query_handler(update: Update, context: CallbackContext):
                         text="Keine Ahnung was passiert ist, aber es hat funktioniert."
                     )
 
+    return START_MENU_QUERY_HANDLER
+
 
 def create_start_menu(update: Update, context: CallbackContext):
     button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen"]
@@ -196,10 +199,32 @@ def create_start_menu(update: Update, context: CallbackContext):
         reply_markup=reply_markup
     )
 
-    return START_MENU_QUERY_HANDLER
-
 
 def build_start_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
+    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
+    if header_buttons:
+        menu.insert(0, header_buttons)
+    if footer_buttons:
+        menu.append(footer_buttons)
+    return menu
+
+
+def create_profile_options(update: Update, context: CallbackContext):
+    button_labels = ["Name ändern", "Geburtsdatum ändern", "Auto ändern", "Zurück"]
+    button_list = []
+
+    for label in button_labels:
+        button_list.append(InlineKeyboardButton(label, callback_data=label))
+
+    reply_markup = InlineKeyboardMarkup(build_profile_options(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text="Profil-Einstellungen",
+        reply_markup=reply_markup
+    )
+
+
+def build_profile_options(buttons, n_cols, header_buttons=None, footer_buttons=None):
     menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
     if header_buttons:
         menu.insert(0, header_buttons)
@@ -223,14 +248,33 @@ def change_name(update: Update, context: CallbackContext):
         if update_name_response["type"] == "UpdatedName":
             # TODO: Neuen Usernamen hier einfügen
             update.message.reply_text("Du hast deinen Namen erfolgreich in ... geändert")
+    return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def change_birthday(update: Update, context: CallbackContext):
     print("Geburtstag")
+    return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def change_car(update: Update, context: CallbackContext):
     print("Auto")
+    return PROFILE_OPTIONS_QUERY_HANDLER
+
+
+def profile_options_query_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    if query.data == "Name ändern":
+        return CHANGE_NAME
+    elif query.data == "Geburtsdatum ändern":
+        return CHANGE_BIRTHDAY
+    elif query.data == "Auto ändern":
+        return CHANGE_CAR
+    elif query.data == "Zurück":
+        create_start_menu(update, context)
+
+    return START_MENU_QUERY_HANDLER
 
 
 def start_menu_query_handler(update: Update, context: CallbackContext):
@@ -242,7 +286,10 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
     elif query.data == "Mitfahrer":
         print("Mitfahrer")
     elif query.data == "Profil-Einstellungen":
-        print("Profil")
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
+        create_profile_options(update, context)
+
+    return PROFILE_OPTIONS_QUERY_HANDLER
 
 
 def main():
@@ -270,6 +317,7 @@ def main():
             ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
             ASK_CAR: [MessageHandler(Filters.text, ask_car)],
             START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
+            PROFILE_OPTIONS_QUERY_HANDLER: [CallbackQueryHandler(profile_options_query_handler)],
             CHANGE_NAME: [MessageHandler(Filters.text, change_name)],
             CHANGE_BIRTHDAY: [MessageHandler(Filters.text, change_birthday)],
             CHANGE_CAR: [MessageHandler(Filters.text, change_car)],
