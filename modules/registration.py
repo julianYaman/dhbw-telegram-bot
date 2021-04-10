@@ -26,7 +26,7 @@ def create_login(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Guten Tag {update.effective_user.first_name}, \n'
-             f'ich bin deine persönliche Mitfahrzentrale "likeuber"! \n\n'
+             f'ich bin deine persönliche Mitfahrzentrale "LikeUber"! \n\n'
              f'Um die Mitfahrzentrale nutzen zu können, musst du dich vorerst registrieren oder einloggen. \n\n',
         reply_markup=reply_markup
     )

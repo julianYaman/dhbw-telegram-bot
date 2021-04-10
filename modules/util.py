@@ -2,7 +2,7 @@ import datetime
 from math import radians, cos, sin, asin, sqrt
 
 
-# TODO: Build Button Menu hinzufügen
+# TODO: Build Button Menu überall hinzufügen
 
 
 def haversine(lon1, lat1, lon2, lat2):

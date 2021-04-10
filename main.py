@@ -210,15 +210,33 @@ def passenger_query_handler(update: Update, context: CallbackContext):
         return START_MENU_QUERY_HANDLER
     elif query.data == "Zurück zur Fahrerliste":
         context.user_data["show_drivers_list"] = True
-        query.bot.delete_message(chat_id=update.effective_chat.id, message_id=context.user_data['destination_msg_id'])
-        query.bot.edit_message_text(chat_id=update.effective_chat.id,
-                                    message_id=context.user_data["passenger_message_id"],
-                                    text=context.user_data["full_text"],
-                                    reply_markup=context.user_data["reply_markup"])
-        context.user_data['destination_msg_id'] = None
+        if "reply_markup" in context.user_data:
+            query.bot.delete_message(chat_id=update.effective_chat.id,
+                                     message_id=context.user_data['destination_msg_id'])
+            query.bot.edit_message_text(chat_id=update.effective_chat.id,
+                                        message_id=context.user_data["passenger_message_id"],
+                                        text=context.user_data["full_text"],
+                                        reply_markup=context.user_data["reply_markup"])
+            context.user_data['destination_msg_id'] = None
+        else:
+            query.bot.delete_message(chat_id=update.effective_chat.id,
+                                     message_id=context.user_data['destination_msg_id'])
+            query.bot.edit_message_text(chat_id=update.effective_chat.id,
+                                        message_id=context.user_data["passenger_message_id"],
+                                        text=context.user_data["full_text"],
+                                        reply_markup=InlineKeyboardMarkup([[
+                                            InlineKeyboardButton("Suche abbrechen",
+                                                                 callback_data="Zurück ins Startmenü")]]
+                                        ))
+            context.user_data['destination_msg_id'] = None
+
     elif query.data == "Zurück ins Startmenü":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        query.edit_message_text("Suche weiterhin nach Fahrern...\n\nEine Liste mit Fahrern wird"
+                                "unter dieser Nachricht automatisch angezeigt und aktualisiert.")
         context.user_data["already_sent_live_location"] = False
+        context.user_data["static_location"] = None
+        context.job_queue.stop()
         delete_user_location_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
@@ -227,11 +245,10 @@ def passenger_query_handler(update: Update, context: CallbackContext):
         data = ast.literal_eval(query.data)
 
         contact_type = get_user_contact_type(data["uid"])["contact_type"]
-        button_list = ""
 
         if contact_type == "phone":
             button_list = [InlineKeyboardButton("Zurück zur Fahrerliste", callback_data="Zurück zur Fahrerliste")]
-        elif contact_type == "link":
+        elif contact_type == "dm_link":
             button_list = [InlineKeyboardButton("Kontaktieren", url=get_user_contact_value(data['uid'])['link']),
                            InlineKeyboardButton("Zurück zur Fahrerliste", callback_data="Zurück zur Fahrerliste")]
         else:
@@ -251,7 +268,7 @@ def passenger_query_handler(update: Update, context: CallbackContext):
                                                                 f"\nAuto: _{user_data['car']}_" \
                                                                 f"\n\n*Kontaktieren:* +{get_user_contact_value(data['uid'])['link']}" \
                                                                 f"\nDer Fahrer ist unterwegs nach: "
-            elif contact_type == "link":
+            elif contact_type == "dm_link":
                 message_text = context.user_data["full_text"] + f"\n\nDu hast _{user_data['name']}_ ausgewählt:" \
                                                                 f"\n\nAlter: _{get_user_age(user_data['birthday'])}_" \
                                                                 f"\nAuto: _{user_data['car']}_" \
@@ -379,7 +396,7 @@ def main():
                 CallbackQueryHandler(passenger_query_handler)
             ],
             PASSENGER_USE_OTHER_LOCATION_TO_PICKUP: [
-                MessageHandler(Filters.location, passenger_use_other_location),
+                MessageHandler(Filters.location, passenger_use_other_location, pass_job_queue=True),
                 CallbackQueryHandler(passenger_query_handler)
             ],
             PROFILE_OPTIONS_QUERY_HANDLER: [CallbackQueryHandler(profile_options_query_handler)],

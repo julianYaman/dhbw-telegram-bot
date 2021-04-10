@@ -2,7 +2,7 @@ import time
 
 from consts import RADIUS, PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP, PASSENGER_USE_OTHER_LOCATION_TO_PICKUP
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
-from telegram.ext import CallbackContext
+from telegram.ext import CallbackContext, JobQueue
 from main import loading_driver_search
 from modules.profile_handler import *
 from modules.location_handler import *
@@ -67,7 +67,7 @@ def passenger_use_current_location(update: Update, context: CallbackContext):
         temp_driver_search_counter = 2  # Resets Search Counter
 
         default_reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(
-                "Suche abbrechen", callback_data="Zurück ins Startmenü")]])
+            "Suche abbrechen", callback_data="Zurück ins Startmenü")]])
 
         msg = context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -269,6 +269,8 @@ def passenger_use_current_location(update: Update, context: CallbackContext):
 
 def passenger_use_other_location(update: Update, context: CallbackContext):
     global temp_driver_search_counter
+    temp_driver_search_counter = 2  # Resets Search Counter
+
     coordinates = {"longitude": update.effective_message.location.longitude,
                    "latitude": update.effective_message.location.latitude}
 
@@ -289,6 +291,7 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
         context.user_data["already_sent_live_location"] = True
         return PASSENGER_USE_OTHER_LOCATION_TO_PICKUP
 
+    # Edit previous message
     context.bot.edit_message_text(chat_id=update.effective_chat.id,
                                   message_id=context.user_data["last_message_id"],
                                   text="Bitte schicke einen Standort deiner Wahl, damit die Suche nach Fahrern beginnen kann.")
@@ -298,12 +301,20 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
     set_passenger_current_location(update.effective_user.id, coordinates)
 
     msg = context.bot.send_message(chat_id=update.effective_chat.id,
-                                   text=loading_driver_search[temp_driver_search_counter],
-                                   reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
-                                       "Suche abbrechen",
-                                       callback_data="Zurück ins Startmenü")]]))
+                                   text=loading_driver_search[temp_driver_search_counter - 1])
 
     context.user_data["passenger_message_id"] = msg.message_id
+    context.user_data["static_location"] = coordinates
+    context.user_data["show_drivers_list"] = True
+    context.user_data["full_text"] = "Suche weiterhin nach Fahrern...\n\nEine Liste mit Fahrern wird " \
+                                     "unter dieser Nachricht automatisch angezeigt und aktualisiert."
+
+    context.job_queue.run_repeating(search_for_drivers, 1.5, context=update.effective_chat.id)
+
+
+def search_for_drivers(context):
+    global temp_driver_search_counter
+    coordinates = context.dispatcher.user_data[context.job.context]["static_location"]
 
     distance_to_drivers = get_distance_from_drivers(coordinates)
     if len(distance_to_drivers) != 0:
@@ -321,7 +332,7 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
             if len(results) == 1:
                 result_text = f"Es wurde {len(results)} Fahrer in deiner Nähe gefunden:"
             else:
-                result_text = f"Es wurdem {len(results)} Fahrer in deiner Nähe gefunden:"
+                result_text = f"Es wurden {len(results)} Fahrer in deiner Nähe gefunden:"
 
             if temp_driver_search_counter == 2:
                 new_text = loading_driver_search[temp_driver_search_counter] + f"\n\n{result_text}"
@@ -341,41 +352,33 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
             reply_markup = InlineKeyboardMarkup(
                 build_button_menu(button_list, n_cols=1))
 
-            context.bot.edit_message_text(chat_id=update.effective_chat.id,
-                                          message_id=context.user_data["passenger_message_id"],
-                                          text=new_text,
-                                          reply_markup=reply_markup)
+            # Driver list
+            if context.dispatcher.user_data[context.job.context]["show_drivers_list"]:
+                context.bot.edit_message_text(chat_id=context.job.context,
+                                              message_id=context.dispatcher.user_data[context.job.context]["passenger_message_id"],
+                                              text=new_text,
+                                              reply_markup=reply_markup)
+
     else:
         default_reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(
             "Suche abbrechen",
             callback_data="Zurück ins Startmenü")]])
 
-        context.user_data["search_result_text"] = "Es wurden noch keine Fahrer in der Nähe gefunden."
+        context.dispatcher.user_data[context.job.context]["search_result_text"] = "Es wurden noch keine Fahrer in der Nähe gefunden."
 
-        # TODO: Push Up Notification - also abkacken angesagt: "Es wurden keine Fahrer gefunden" - danke Gary
-        context.user_data["reply_markup"] = default_reply_markup
+        context.dispatcher.user_data[context.job.context]["reply_markup"] = default_reply_markup
 
-        message_text = loading_driver_search[
-                           temp_driver_search_counter] + f"\n\n{context.user_data['search_result_text']}"
-        context.user_data["full_text"] = message_text
-
-        context.bot.edit_message_text(chat_id=update.effective_chat.id,
-                                      message_id=context.user_data["passenger_message_id"],
-                                      text=message_text,
-                                      reply_markup=context.user_data["reply_markup"])
-
-    # TODO: Mit "Job" ersetzen
-    """
-    while temp_bool:
-        time.sleep(1)
         if temp_driver_search_counter == 2:
-            context.bot.edit_message_text(chat_id=update.effective_chat.id,
-                                          message_id=temp_message.message_id,
-                                          text=loading_driver_search[temp_driver_search_counter])
+            message_text = loading_driver_search[
+                               temp_driver_search_counter] + f"\n\n{context.dispatcher.user_data[context.job.context]['search_result_text']}"
             temp_driver_search_counter = 0
         else:
-            context.bot.edit_message_text(chat_id=update.effective_chat.id,
-                                          message_id=temp_message.message_id,
-                                          text=loading_driver_search[temp_driver_search_counter])
+            message_text = loading_driver_search[
+                               temp_driver_search_counter] + f"\n\n{context.dispatcher.user_data[context.job.context]['search_result_text']}"
             temp_driver_search_counter += 1
-    """
+
+        if context.dispatcher.user_data[context.job.context]["show_drivers_list"]:
+            context.bot.edit_message_text(chat_id=context.job.context,
+                                          message_id=context.dispatcher.user_data[context.job.context]["passenger_message_id"],
+                                          text=message_text,
+                                          reply_markup=context.dispatcher.user_data[context.job.context]["reply_markup"])
