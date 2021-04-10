@@ -1,20 +1,16 @@
 [
     {
-        "birthday": "16.09.2000",
-        "car": "Benzer",
-        "driver": false,
-        "id": 1685943614,
-        "link": null,
-        "name": "Gary",
-        "traveler": false
-    },
-    {
-        "birthday": "Test",
-        "car": "Test",
-        "driver": false,
+        "birthday": "31.07.2001",
+        "car": "Tesla Model S",
         "id": 284840934,
         "link": "https://t.me/julianyaman",
-        "name": "ja",
-        "traveler": false
+        "name": "Julian"
+    },
+    {
+        "birthday": "16.09.2000",
+        "car": "Benzer",
+        "id": 1685943614,
+        "link": "https://t.me/garylude",
+        "name": "Gary"
     }
 ]

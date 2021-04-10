@@ -20,16 +20,5 @@
         "is_destination": false,
         "passenger": false,
         "user_id": 1685943614
-    },
-    {
-        "coordinates": {
-            "latitude": 47.923784,
-            "longitude": 9.257706
-        },
-        "driver": false,
-        "is_current_location": true,
-        "is_destination": false,
-        "passenger": true,
-        "user_id": 284840934
     }
 ]

@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from modules.profile_handler import *
 from telegram.ext import CallbackContext
-from main import ASK_BIRTHDAY, ASK_CAR, LOGIN_QUERY_HANDLER, questions, create_start_menu
+from main import ASK_BIRTHDAY, ASK_CAR, LOGIN_QUERY_HANDLER, START_MENU_QUERY_HANDLER, questions, create_start_menu
 
 registration_data = {
     "id": "",
@@ -97,8 +97,11 @@ def complete_registration(update: Update, context: CallbackContext):
                 text="Glückwunsch! Du hast einen neuen Account erstellt."
             )
             create_start_menu(update, context)
+            return START_MENU_QUERY_HANDLER
         else:
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Keine Ahnung was passiert ist, aber es hat funktioniert."
             )
+            create_start_menu(update, context)
+            return START_MENU_QUERY_HANDLER

@@ -32,7 +32,7 @@ def register_user(user):
     with open('data/users.json', 'w') as user_collection_file:
         try:
             new_user = {'id': user["id"], 'birthday': user["birthday"], 'car': user["car"], 'link': user["link"],
-                        'name': user["name"], 'traveler': False, 'driver': False}
+                        'name': user["name"]}
 
             data.append(new_user)
             json.dump(data, user_collection_file, sort_keys=True, indent=4)
