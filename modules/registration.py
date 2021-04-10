@@ -106,7 +106,7 @@ def ask_car(update: Update, context: CallbackContext):
 
         return CONTACT_OPTIONS_MESSAGE_HANDLER
 
-    registration_data["contact_type"] = "link"
+    registration_data["contact_type"] = "dm_link"
     registration_data["link"] = update.effective_user.link
 
     # Register user with error handling
@@ -127,6 +127,7 @@ def ask_car(update: Update, context: CallbackContext):
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
                 text="Glückwunsch! Du hast einen neuen Account erstellt."
+                     "\nViel Spaß mit LikeUber 👍"
             )
             create_start_menu(update, context)
             return START_MENU_QUERY_HANDLER

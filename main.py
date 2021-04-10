@@ -7,6 +7,7 @@ from modules.start_menu import *
 from modules.driver import *
 from modules.passenger import *
 from modules.profile_settings import *
+from modules.profile_handler import *
 from modules.location_handler import *
 from modules.util import *
 import ast
@@ -112,7 +113,8 @@ def register_with_contact_callback(update: Update, context: CallbackContext):
         if register_user_response["type"] == "SuccessfullyRegistered":
             context.bot.send_message(
                 chat_id=update.effective_chat.id,
-                text="Glückwunsch! Du hast einen neuen Account erstellt."
+                text="Glückwunsch! Du hast einen neuen Account mit deiner Telefonnummer erstellt."
+                     "\nViel Spaß mit LikeUber 👍"
             )
             create_start_menu(update, context)
             return START_MENU_QUERY_HANDLER
@@ -224,8 +226,16 @@ def passenger_query_handler(update: Update, context: CallbackContext):
         context.user_data["show_drivers_list"] = False
         data = ast.literal_eval(query.data)
 
-        button_list = [InlineKeyboardButton("Kontaktieren", url=get_user_dm_link(data["uid"])["link"]),
-                       InlineKeyboardButton("Zurück zur Fahrerliste", callback_data="Zurück zur Fahrerliste")]
+        contact_type = get_user_contact_type(data["uid"])["contact_type"]
+        button_list = ""
+
+        if contact_type == "phone":
+            button_list = [InlineKeyboardButton("Zurück zur Fahrerliste", callback_data="Zurück zur Fahrerliste")]
+        elif contact_type == "link":
+            button_list = [InlineKeyboardButton("Kontaktieren", url=get_user_contact_value(data['uid'])['link']),
+                           InlineKeyboardButton("Zurück zur Fahrerliste", callback_data="Zurück zur Fahrerliste")]
+        else:
+            button_list = [InlineKeyboardButton("Wie?", callback_data="Zurück zur Fahrerliste")]
 
         reply_markup = InlineKeyboardMarkup(
             build_button_menu(button_list, n_cols=1))
@@ -234,10 +244,18 @@ def passenger_query_handler(update: Update, context: CallbackContext):
 
         driver_destination = get_driver_destination(data["uid"])
         if driver_destination:
-            message_text = context.user_data["full_text"] + f"\n\nDu hast _{user_data['name']}_ ausgewählt:" \
-                                                            f"\n\nAlter: _{get_user_age(user_data['birthday'])}_" \
-                                                            f"\nAuto: _{user_data['car']}_\nDer Fahrer ist unterwegs " \
-                                                            f"nach: "
+            message_text = ""
+            if contact_type == "phone":
+                message_text = context.user_data["full_text"] + f"\n\nDu hast _{user_data['name']}_ ausgewählt:" \
+                                                                f"\n\nAlter: _{get_user_age(user_data['birthday'])}_" \
+                                                                f"\nAuto: _{user_data['car']}_" \
+                                                                f"\n\n*Kontaktieren:* +{get_user_contact_value(data['uid'])['link']}" \
+                                                                f"\nDer Fahrer ist unterwegs nach: "
+            elif contact_type == "link":
+                message_text = context.user_data["full_text"] + f"\n\nDu hast _{user_data['name']}_ ausgewählt:" \
+                                                                f"\n\nAlter: _{get_user_age(user_data['birthday'])}_" \
+                                                                f"\nAuto: _{user_data['car']}_" \
+                                                                f"\nDer Fahrer ist unterwegs nach: "
 
             query.bot.edit_message_text(chat_id=update.effective_chat.id,
                                         message_id=context.user_data["passenger_message_id"],
