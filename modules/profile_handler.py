@@ -4,7 +4,7 @@ import json
 def login_user(user):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
@@ -19,7 +19,7 @@ def login_user(user):
 def register_user(user):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
         except:
@@ -29,10 +29,10 @@ def register_user(user):
             if saved_user["id"] == user["id"]:
                 return {"error": True, "type": "AlreadyRegistered"}
 
-    with open('data/users.json', 'w') as user_collection_file:
+    with open("data/users.json", "w") as user_collection_file:
         try:
-            new_user = {'id': user["id"], 'birthday': user["birthday"], 'car': user["car"], 'link': user["link"],
-                        'name': user["name"]}
+            new_user = {"id": user["id"], "birthday": user["birthday"], "car": user["car"], "link": user["link"],
+                        "name": user["name"], "contact_type": user["contact_type"]}
 
             data.append(new_user)
             json.dump(data, user_collection_file, sort_keys=True, indent=4)
@@ -46,7 +46,7 @@ def register_user(user):
 def is_already_registered(user_id):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
@@ -61,7 +61,7 @@ def is_already_registered(user_id):
 def get_user_data(user_id):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
@@ -76,7 +76,7 @@ def get_user_data(user_id):
 def get_user_dm_link(user_id):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
@@ -91,12 +91,12 @@ def get_user_dm_link(user_id):
 def update_name(user_id, name):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
                 if saved_user["id"] == user_id:
-                    with open('data/users.json', 'w') as file:
+                    with open("data/users.json", "w") as file:
                         try:
                             saved_user["name"] = name
                             json.dump(data, file, sort_keys=True, indent=4)
@@ -113,12 +113,12 @@ def update_name(user_id, name):
 def update_birthday(user_id, birthday):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
                 if saved_user["id"] == user_id:
-                    with open('data/users.json', 'w') as file:
+                    with open("data/users.json", "w") as file:
                         try:
                             saved_user["birthday"] = birthday
                             json.dump(data, file, sort_keys=True, indent=4)
@@ -135,12 +135,12 @@ def update_birthday(user_id, birthday):
 def update_car(user_id, car):
     data = None
 
-    with open('data/users.json', 'r') as user_collection_file:
+    with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
                 if saved_user["id"] == user_id:
-                    with open('data/users.json', 'w') as file:
+                    with open("data/users.json", "w") as file:
                         try:
                             saved_user["car"] = car
                             json.dump(data, file, sort_keys=True, indent=4)

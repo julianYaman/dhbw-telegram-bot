@@ -88,6 +88,53 @@ def login_query_handler(update: Update, context: CallbackContext):
                     return START_MENU_QUERY_HANDLER
 
 
+def register_with_contact_callback(update: Update, context: CallbackContext):
+    current_registration_data = context.user_data["registration_data"]
+    user_phone_number = update.message.contact.phone_number
+
+    current_registration_data["link"] = user_phone_number
+    current_registration_data["contact_type"] = "phone"
+
+    # Register user with error handling
+    register_user_response = register_user(current_registration_data)
+    if register_user_response["error"] is True:
+        if register_user_response["type"] == "JSONFileError":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Leider ist ein Fehler beim Aufrufen der Daten aufgetreten."
+            )
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Ein unbekannter Fehler ist aufgetreten."
+            )
+    else:
+        if register_user_response["type"] == "SuccessfullyRegistered":
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Glückwunsch! Du hast einen neuen Account erstellt."
+            )
+            create_start_menu(update, context)
+            return START_MENU_QUERY_HANDLER
+        else:
+            context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Keine Ahnung was passiert ist, aber es hat funktioniert."
+            )
+            create_start_menu(update, context)
+            return START_MENU_QUERY_HANDLER
+
+
+def register_cancel_with_text_callback(update: Update, context: CallbackContext):
+    if update.message.text == "Abbrechen":
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Die Registrierung wurde abgebrochen. Mit /start kannst du wieder von vorne anfangen. :)",
+        )
+        context.user_data["registration_data"] = None
+        return ConversationHandler.END
+
+
 def driver_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
@@ -131,6 +178,7 @@ def driver_query_handler(update: Update, context: CallbackContext):
 
 def passenger_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
+    query.answer()
 
     if query.data == "Ja":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
@@ -258,11 +306,11 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
         create_passenger_preparation_menu(update, context)
         return PASSENGER_QUERY_HANDLER
     elif query.data == "Profil-Einstellungen":
-        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         create_profile_options(update, context)
         return PROFILE_OPTIONS_QUERY_HANDLER
     elif query.data == "Abmelden":
-        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Du hast dich erfolgreich abgemeldet. Du kannst den Bot wieder mit /start ausführen."
@@ -293,6 +341,10 @@ def main():
             ASK_NAME: [MessageHandler(Filters.text, ask_name)],
             ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
             ASK_CAR: [MessageHandler(Filters.text, ask_car)],
+            CONTACT_OPTIONS_MESSAGE_HANDLER: [
+                MessageHandler(Filters.contact, register_with_contact_callback),
+                MessageHandler(Filters.text, register_cancel_with_text_callback)
+            ],
             START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
             DRIVER_QUERY_HANDLER: [CallbackQueryHandler(driver_query_handler)],
             DRIVER_SET_DESTINATION: [
