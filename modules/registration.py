@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from handler.profile_handler import *
+from modules.profile_handler import *
 from telegram.ext import CallbackContext
 from main import ASK_BIRTHDAY, ASK_CAR, LOGIN_QUERY_HANDLER, questions, create_start_menu
 

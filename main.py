@@ -2,12 +2,13 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, \
     ConversationHandler
 from consts import *
-from handler.registration import *
-from handler.start_menu import *
-from handler.driver import *
-from handler.passenger import *
-from handler.profile_settings import *
-from handler.location_handler import *
+from modules.registration import *
+from modules.start_menu import *
+from modules.driver import *
+from modules.passenger import *
+from modules.profile_settings import *
+from modules.location_handler import *
+import ast
 
 bot = None
 
@@ -153,6 +154,11 @@ def passenger_query_handler(update: Update, context: CallbackContext):
     elif query.data == "Zurück ins Startmenü":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         delete_user_location_data(update.effective_user.id)
+        create_start_menu(update, context)
+        return START_MENU_QUERY_HANDLER
+    elif ast.literal_eval(query.data)["drv_btn"]:
+        print(ast.literal_eval(query.data))
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
 

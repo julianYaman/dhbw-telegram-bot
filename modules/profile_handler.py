@@ -66,7 +66,7 @@ def get_user_data(user_id):
             data = json.load(user_collection_file)
             for saved_user in data:
                 if saved_user["id"] == user_id:
-                    return {"error": False, "type": "UserFound", "data": data}
+                    return {"error": False, "type": "UserFound", "data": saved_user}
             return {"error": True, "type": "UserNotFound"}
         except:
             print("Error occurred when trying to open the file users.json")

@@ -1,5 +1,5 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from handler.profile_handler import *
+from modules.profile_handler import *
 from telegram.ext import CallbackContext
 from main import PROFILE_OPTIONS_QUERY_HANDLER
 

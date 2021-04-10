@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
 from main import loading_driver_enabling_search, DRIVER_QUERY_HANDLER
-from handler.location_handler import *
+from modules.location_handler import *
 
 temp_driver_message = None
 temp_driver_enabling_search_counter = 2

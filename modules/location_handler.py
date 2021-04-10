@@ -1,5 +1,5 @@
 import json
-from handler.util import haversine
+from modules.util import haversine
 
 
 def set_driver_current_location(user_id, coordinates):
@@ -122,7 +122,7 @@ def delete_user_location_data(user_id):
             return {"error": True, "type": "JSONFileError"}
 
 
-def get_distanace_from_drivers(coordinates):
+def get_distance_from_drivers(coordinates):
     results = []
     with open('data/location.json', 'r') as location_collection:
         try:
@@ -133,7 +133,7 @@ def get_distanace_from_drivers(coordinates):
                     distance = haversine(coordinates["longitude"], coordinates["latitude"],
                                          location_dataset["coordinates"]["longitude"],
                                          location_dataset["coordinates"]["latitude"])
-                    results.append({"distance": distance, "driver_id": location_dataset["user_id"]})
+                    results.append({"distance": distance, "user_id": location_dataset["user_id"]})
 
             return results
         except:

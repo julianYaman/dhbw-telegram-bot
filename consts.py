@@ -22,4 +22,4 @@ loading_driver_enabling_search = [
     "Warte auf Kontakt von möglichen Mitfahrern..."
 ]
 
-RADIUS = 1
+RADIUS = 15
