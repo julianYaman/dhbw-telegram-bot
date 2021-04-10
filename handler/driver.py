@@ -1,10 +1,11 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackContext
-from main import loading_driver_enabling_search, DRIVER_PREPARATION_QUERY_HANDLER
+from main import loading_driver_enabling_search, DRIVER_QUERY_HANDLER
 from handler.location_handler import *
 
 temp_driver_message = None
 temp_driver_enabling_search_counter = 2
+
 
 def create_driver_preparation_menu(update: Update, context: CallbackContext):
     button_labels = ["Suche Mitfahrer", "Zurück"]
@@ -36,11 +37,14 @@ def driver_enable_passengers_searching(update: Update, context: CallbackContext)
     coordinates = {"longitude": update.effective_message.location.longitude,
                    "latitude": update.effective_message.location.latitude}
     if update.message is not None:
-        reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])  # n_cols = 1 is for single column and multiple rows
+        context.bot.edit_message_text(chat_id=update.effective_chat.id,
+                                      message_id=context.user_data["last_message_id"],
+                                      text="Bitte schicke nun deinen Live-Standort, damit dich Mitfahrer finden und kontaktieren können.")
+
         temp_driver_message = context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Warte auf Standort...",
-            reply_markup=reply_markup
+            text=loading_driver_enabling_search[temp_driver_enabling_search_counter-1],
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])
         )
         set_driver_current_location(update.effective_user.id, coordinates)
     else:
@@ -60,6 +64,9 @@ def driver_enable_passengers_searching(update: Update, context: CallbackContext)
 
 
 def driver_set_destination(update: Update, context: CallbackContext):
+    context.bot.edit_message_text(chat_id=update.effective_chat.id,
+                                  message_id=context.user_data["last_message_id"],
+                                  text="Wohin fährst du? Bitte teile dein Ziel als Standort mit.")
     coordinates = {"longitude": update.effective_message.location.longitude,
                    "latitude": update.effective_message.location.latitude}
     if update.message is not None:
@@ -73,11 +80,10 @@ def driver_set_destination(update: Update, context: CallbackContext):
             build_driver_menu(button_list, n_cols=1))
 
         set_driver_destination(update.effective_user.id, coordinates)
-
         context.bot.send_message(
             chat_id=update.effective_chat.id,
             text="Danke! Möchtest du nun für potentielle Mitfahrer sichtbar sein?",
             reply_markup=reply_markup
         )
 
-    return DRIVER_PREPARATION_QUERY_HANDLER
+    return DRIVER_QUERY_HANDLER

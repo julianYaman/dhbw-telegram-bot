@@ -9,5 +9,38 @@
         "is_destination": false,
         "passenger": false,
         "user_id": 2848409341231234123
+    },
+    {
+        "coordinates": {
+            "latitude": 47.955776,
+            "longitude": 9.381342
+        },
+        "driver": true,
+        "is_current_location": false,
+        "is_destination": true,
+        "passenger": false,
+        "user_id": 1685943614
+    },
+    {
+        "coordinates": {
+            "latitude": 47.95233,
+            "longitude": 9.38308
+        },
+        "driver": true,
+        "is_current_location": true,
+        "is_destination": false,
+        "passenger": false,
+        "user_id": 1685943614
+    },
+    {
+        "coordinates": {
+            "latitude": 52.517791,
+            "longitude": 13.409844
+        },
+        "driver": false,
+        "is_current_location": true,
+        "is_destination": false,
+        "passenger": true,
+        "user_id": 284840934
     }
 ]

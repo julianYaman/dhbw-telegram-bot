@@ -82,27 +82,33 @@ def login_query_handler(update: Update, context: CallbackContext):
     return START_MENU_QUERY_HANDLER
 
 
-def driver_preparation_query_handler(update: Update, context: CallbackContext):
+def driver_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
 
     if query.data == "Suche Mitfahrer":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        context.bot.send_message(
+        msg = context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Wohin fährst du? Bitte teile dein Ziel als Standort mit."
+            text="Wohin fährst du? Bitte teile dein Ziel als Standort mit.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
+                "Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])
         )
+        context.user_data["last_message_id"] = msg.message_id
         return DRIVER_SET_DESTINATION
     elif query.data == "Ja":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        context.bot.send_message(
+        msg = context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Bitte schicke nun deinen Live-Standort, damit dich Mitfahrer finden und kontaktieren können."
+            text="Bitte schicke nun deinen Live-Standort, damit dich Mitfahrer finden und kontaktieren können.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
+                "Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])
         )
+        context.user_data["last_message_id"] = msg.message_id
         return DRIVER_ENABLE_PASSENGERS_TO_SEARCH
     elif query.data == "Nein":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        delete_driver_data(update.effective_user.id)
+        delete_user_location_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
     elif query.data == "Zurück":
@@ -111,31 +117,42 @@ def driver_preparation_query_handler(update: Update, context: CallbackContext):
         return START_MENU_QUERY_HANDLER
     elif query.data == "Zurück ins Startmenü":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        delete_driver_data(update.effective_user.id)
+        delete_user_location_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
 
 
-def passenger_preparation_query_handler(update: Update, context: CallbackContext):
+def passenger_query_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     query.answer()
 
     if query.data == "Ja":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        context.bot.send_message(
+        msg = context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Bitte schicke deinen Live-Standort, damit die Suche nach Fahrern beginnen kann."
+            text="Bitte schicke deinen Live-Standort, damit die Suche nach Fahrern beginnen kann.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
+                "Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])
         )
+        context.user_data["last_message_id"] = msg.message_id
         return PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP
     elif query.data == "Nein":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
-        context.bot.send_message(
+        msg = context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Bitte schicke einen Standort deiner Wahl, damit die Suche nach Fahrern beginnen kann."
+            text="Bitte schicke einen Standort deiner Wahl, damit die Suche nach Fahrern beginnen kann.",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(
+                "Zurück ins Startmenü", callback_data="Zurück ins Startmenü")]])
         )
+        context.user_data["last_message_id"] = msg.message_id
         return PASSENGER_USE_OTHER_LOCATION_TO_PICKUP
     elif query.data == "Zurück":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        create_start_menu(update, context)
+        return START_MENU_QUERY_HANDLER
+    elif query.data == "Zurück ins Startmenü":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
+        delete_user_location_data(update.effective_user.id)
         create_start_menu(update, context)
         return START_MENU_QUERY_HANDLER
 
@@ -178,15 +195,22 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
     if query.data == "Fahrer":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         create_driver_preparation_menu(update, context)
-        return DRIVER_PREPARATION_QUERY_HANDLER
+        return DRIVER_QUERY_HANDLER
     elif query.data == "Mitfahrer":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         create_passenger_preparation_menu(update, context)
-        return PASSENGER_PREPARATION_QUERY_HANDLER
+        return PASSENGER_QUERY_HANDLER
     elif query.data == "Profil-Einstellungen":
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
         create_profile_options(update, context)
         return PROFILE_OPTIONS_QUERY_HANDLER
+    elif query.data == "Abmelden":
+        query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))  # Remove inline keyboard from message
+        context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="Du hast dich erfolgreich abgemeldet. Du kannst den Bot wieder mit /start ausführen."
+        )
+        return ConversationHandler.END
 
 
 def main():
@@ -213,14 +237,24 @@ def main():
             ASK_BIRTHDAY: [MessageHandler(Filters.text, ask_birthday)],
             ASK_CAR: [MessageHandler(Filters.text, ask_car)],
             START_MENU_QUERY_HANDLER: [CallbackQueryHandler(start_menu_query_handler)],
-            DRIVER_PREPARATION_QUERY_HANDLER: [CallbackQueryHandler(driver_preparation_query_handler)],
-            DRIVER_SET_DESTINATION: [MessageHandler(Filters.location, driver_set_destination)],
-            DRIVER_ENABLE_PASSENGERS_TO_SEARCH: [MessageHandler(Filters.location, driver_enable_passengers_searching),
-                                                 CallbackQueryHandler(driver_preparation_query_handler)],
-            PASSENGER_PREPARATION_QUERY_HANDLER: [CallbackQueryHandler(passenger_preparation_query_handler)],
+            DRIVER_QUERY_HANDLER: [CallbackQueryHandler(driver_query_handler)],
+            DRIVER_SET_DESTINATION: [
+                MessageHandler(Filters.location, driver_set_destination),
+                CallbackQueryHandler(driver_query_handler)
+            ],
+            DRIVER_ENABLE_PASSENGERS_TO_SEARCH: [
+                MessageHandler(Filters.location, driver_enable_passengers_searching),
+                CallbackQueryHandler(driver_query_handler)
+            ],
+            PASSENGER_QUERY_HANDLER: [CallbackQueryHandler(passenger_query_handler)],
             PASSENGER_USE_CURRENT_LOCATION_TO_PICKUP: [
-                MessageHandler(Filters.location, passenger_use_current_location, pass_job_queue=True)],
-            PASSENGER_USE_OTHER_LOCATION_TO_PICKUP: [MessageHandler(Filters.location, passenger_use_other_location)],
+                MessageHandler(Filters.location, passenger_use_current_location),
+                CallbackQueryHandler(passenger_query_handler)
+            ],
+            PASSENGER_USE_OTHER_LOCATION_TO_PICKUP: [
+                MessageHandler(Filters.location, passenger_use_other_location),
+                CallbackQueryHandler(passenger_query_handler)
+            ],
             PROFILE_OPTIONS_QUERY_HANDLER: [CallbackQueryHandler(profile_options_query_handler)],
             CHANGE_NAME: [MessageHandler(Filters.text, change_name)],
             CHANGE_BIRTHDAY: [MessageHandler(Filters.text, change_birthday)],

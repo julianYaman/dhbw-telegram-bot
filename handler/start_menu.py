@@ -3,7 +3,7 @@ from telegram.ext import CallbackContext
 
 
 def create_start_menu(update: Update, context: CallbackContext):
-    button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen"]
+    button_labels = ["Fahrer", "Mitfahrer", "Profil-Einstellungen", "Abmelden"]
     button_list = []
 
     for label in button_labels:
