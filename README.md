@@ -51,7 +51,7 @@ Sobald man einen Token erhalten hat, setzt man diesen in den Placeholder in der 
 
 ```json
 {
-"token": "my-token"
+  "token": "my-token"
 }
 ```
 
