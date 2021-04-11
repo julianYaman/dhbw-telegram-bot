@@ -164,11 +164,16 @@ def driver_set_destination(update: Update, context: CallbackContext) -> int:
             # Returns DRIVER_SET_DESTINATION since the user should sent a static location
             return DRIVER_SET_DESTINATION
 
+        # Removing the markup to clean up the chat history
+        context.bot.edit_message_text(chat_id=update.effective_chat.id,
+                                      message_id=context.user_data["last_message_id"],
+                                      text="Wohin fährst du? Bitte teile dein Ziel als Standort mit.")
+
         button_labels = ["Ja", "Nein"]
         button_list = []
 
-        # Makes sure that already_sent_live_location is set to False since we only use a sent s
-        # tatic location from the user and not received any live location. It also prevents from any unattractive issue.
+        # Makes sure that already_sent_live_location is set to False since we only use a sent static
+        # location from the user and not received any live location. It also prevents from any unattractive issue.
         context.user_data["already_sent_live_location"] = False
 
         for label in button_labels:
