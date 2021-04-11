@@ -16,6 +16,16 @@ bot = None
 
 
 def cancel(update: Update, context: CallbackContext):
+    """Ends the conversation with the bot and sends a message to the user
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Bye :-)"
@@ -25,6 +35,16 @@ def cancel(update: Update, context: CallbackContext):
 
 
 def login_query_handler(update: Update, context: CallbackContext):
+    """Manages the user registration and login
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     query = update.callback_query
     query.answer()
 
@@ -90,6 +110,16 @@ def login_query_handler(update: Update, context: CallbackContext):
 
 
 def register_with_contact_callback(update: Update, context: CallbackContext):
+    """Manages telegram users without t.me-Link
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     current_registration_data = context.user_data["registration_data"]
     user_phone_number = update.message.contact.phone_number
 
@@ -128,6 +158,16 @@ def register_with_contact_callback(update: Update, context: CallbackContext):
 
 
 def register_cancel_with_text_callback(update: Update, context: CallbackContext):
+    """Ends the conversation with the bot because no contact data is delivered by the user
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     if update.message.text == "Abbrechen":
         context.bot.send_message(
             chat_id=update.effective_chat.id,
@@ -138,6 +178,16 @@ def register_cancel_with_text_callback(update: Update, context: CallbackContext)
 
 
 def driver_query_handler(update: Update, context: CallbackContext):
+    """Manages the conversation with the bot if the user chose driver
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     query = update.callback_query
     query.answer()
 
@@ -179,6 +229,16 @@ def driver_query_handler(update: Update, context: CallbackContext):
 
 
 def passenger_query_handler(update: Update, context: CallbackContext):
+    """Manages the conversation with the bot if the user chose passenger
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     query = update.callback_query
     query.answer()
 
@@ -298,6 +358,16 @@ def passenger_query_handler(update: Update, context: CallbackContext):
 
 
 def profile_options_query_handler(update: Update, context: CallbackContext):
+    """Manages the conversation with the bot if the user wants to change some profile options
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     query = update.callback_query
     query.answer()
 
@@ -312,7 +382,7 @@ def profile_options_query_handler(update: Update, context: CallbackContext):
         query.edit_message_reply_markup(InlineKeyboardMarkup([[]]))
         context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="Wann wurdest du geboren?"
+            text="Wann wurdest du geboren? (DD.MM.YYYY)"
         )
         return CHANGE_BIRTHDAY
     elif query.data == "Auto ändern":
@@ -329,6 +399,16 @@ def profile_options_query_handler(update: Update, context: CallbackContext):
 
 
 def start_menu_query_handler(update: Update, context: CallbackContext):
+    """Manages the conversation with the bot within the start_menu
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        int: An integer which represents another status
+    """
+
     query = update.callback_query
     query.answer()
 
@@ -354,6 +434,12 @@ def start_menu_query_handler(update: Update, context: CallbackContext):
 
 
 def main():
+    """Initializes important data, starts the bot and handles the conversation with the bot
+
+    Returns:
+        None
+    """
+
     token = None
 
     with open('data/bot.json', 'r') as config_file:
