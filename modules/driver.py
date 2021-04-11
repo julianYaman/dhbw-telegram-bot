@@ -10,7 +10,7 @@ temp_driver_enabling_search_counter = 2
 
 
 def create_driver_preparation_menu(update: Update, context: CallbackContext) -> None:
-    """Creates the menu which the user can use to prepare using the functions as a driver.
+    """Creates the menu which the user can use to prepare using the functions as a *driver*.
 
     Args:
         update (telegram.Update)
