@@ -2,9 +2,6 @@ import datetime
 from math import radians, cos, sin, asin, sqrt
 
 
-# TODO: Build Button Menu überall hinzufügen
-
-
 def haversine(lon1, lat1, lon2, lat2):
     """ Calculate the great circle distance between two points on the earth (specified in decimal degrees)
 
@@ -32,7 +29,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 
 def build_button_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
-    """ Preparing a list for being used in a InlineKeyboardMarkup
+    """ Preparing a list for being used in a InlineKeyboardMarkup creation script
 
     Args:
         buttons (list): The longitude of the first coordinate
@@ -54,7 +51,7 @@ def build_button_menu(buttons, n_cols, header_buttons=None, footer_buttons=None)
 
 
 def get_user_age(birthday_str):
-    """Returns the rounded off by calculating the difference between the birthday and today
+    """Returns the rounded off by calculating the difference between the user's birthday and today's date
 
     Args:
         birthday_str (str): The birthday as a string

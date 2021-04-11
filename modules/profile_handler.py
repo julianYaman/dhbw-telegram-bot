@@ -12,15 +12,18 @@ def login_user(user):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error, type and name is returned
                 if saved_user["id"] == user["id"]:
                     return {"error": False, "type": "UserFound", "name": saved_user["name"]}
             return {"error": True, "type": "UserNotFound"}
         except:
+            # If the file could not be opened, it will return an error dictionary with a custom error type
             print("Error occurred when trying to open the file users.json")
             return {"error": True, "type": "JSONFileError"}
 
@@ -36,7 +39,8 @@ def register_user(user):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
@@ -44,9 +48,12 @@ def register_user(user):
             return {"error": True, "type": "JSONFileError"}
 
         for saved_user in data:
+            # If the user has the specified ID then an object with error and type is returned
             if saved_user["id"] == user["id"]:
                 return {"error": True, "type": "AlreadyRegistered"}
 
+    # Opens the users data storage file in WRITE mode and searches for the user
+    # If user is not found by ID, just add the user with the object new_user to users data storage
     with open("data/users.json", "w") as user_collection_file:
         try:
             new_user = {"id": user["id"], "birthday": user["birthday"], "car": user["car"], "link": user["link"],
@@ -72,11 +79,13 @@ def is_already_registered(user_id):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error, type and name is returned
                 if saved_user["id"] == user_id:
                     return {"error": False, "type": "UserFound", "name": saved_user["name"]}
             return {"error": False, "type": "UserNotFound"}
@@ -96,11 +105,13 @@ def get_user_data(user_id):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error, type and data is returned
                 if saved_user["id"] == user_id:
                     return {"error": False, "type": "UserFound", "data": saved_user}
             return {"error": True, "type": "UserNotFound"}
@@ -120,11 +131,13 @@ def get_user_contact_type(user_id):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error, type, contact_type and saved_user is returned
                 if saved_user["id"] == user_id:
                     return {"error": False, "type": "UserFound", "contact_type": saved_user["contact_type"]}
             return {"error": True, "type": "UserNotFound"}
@@ -144,11 +157,13 @@ def get_user_contact_value(user_id):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error, type and link is returned
                 if saved_user["id"] == user_id:
                     return {"error": False, "type": "UserFound", "link": saved_user["link"]}
             return {"error": True, "type": "UserNotFound"}
@@ -169,11 +184,15 @@ def update_name(user_id, name):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error and type is returned
+                # Opens the users data storage file in WRITE mode and searches for the user
+                # by using a for loop.
                 if saved_user["id"] == user_id:
                     with open("data/users.json", "w") as file:
                         try:
@@ -201,11 +220,15 @@ def update_birthday(user_id, birthday):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error and type is returned
+                # Opens the users data storage file in WRITE mode and searches for the user
+                # by using a for loop.
                 if saved_user["id"] == user_id:
                     with open("data/users.json", "w") as file:
                         try:
@@ -233,11 +256,15 @@ def update_car(user_id, car):
     """
 
     data = None
-
+    # Opens the users data storage file in READ mode and searches for the user
+    # by using a for loop.
     with open("data/users.json", "r") as user_collection_file:
         try:
             data = json.load(user_collection_file)
             for saved_user in data:
+                # If the user has the specified ID then an object with error and type is returned
+                # Opens the users data storage file in WRITE mode and searches for the user
+                # by using a for loop.
                 if saved_user["id"] == user_id:
                     with open("data/users.json", "w") as file:
                         try:

@@ -23,12 +23,15 @@ def create_driver_preparation_menu(update: Update, context: CallbackContext) -> 
     button_labels = ["Für Mitfahrer sichtbar sein", "Zurück"]
     button_list = []
 
+    # Preparing and appending all buttons for being used in a InlineKeyboardMarkup
     for label in button_labels:
         button_list.append(InlineKeyboardButton(label, callback_data=label))
 
+    # Building the menu with the modules.util build_button_menu function
     reply_markup = InlineKeyboardMarkup(
         build_button_menu(button_list, n_cols=1))
 
+    # Sending the driver preparation menu with InlineKeyboardButtons
     # Ask user how to proceed from here ("Für Mitfahrer sichtbar sein" / "Zurück")
     context.bot.send_message(
         chat_id=update.effective_chat.id,

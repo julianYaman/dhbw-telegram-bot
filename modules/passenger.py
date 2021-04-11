@@ -26,11 +26,15 @@ def create_passenger_preparation_menu(update: Update, context: CallbackContext):
     button_labels = ["Ja", "Nein", "Zurück"]
     button_list = []
 
+    # Preparing and appending all buttons for being used in a InlineKeyboardMarkup
     for label in button_labels:
         button_list.append(InlineKeyboardButton(label, callback_data=label))
 
+    # Building the menu with the modules.util build_button_menu function
     reply_markup = InlineKeyboardMarkup(
         build_button_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+
+    # Sending the passenger preparation menu with InlineKeyboardButtons
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Möchtest du deinen aktuellen Standort als Abholpunkt definieren?",
@@ -50,6 +54,7 @@ def passenger_use_current_location(update: Update, context: CallbackContext):
     Returns:
         None or int - depending on the user action
     """
+
     global temp_driver_search_counter
     coordinates = {"longitude": update.effective_message.location.longitude,
                    "latitude": update.effective_message.location.latitude}
@@ -291,6 +296,7 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
     Returns:
         None or int - depending on the user action
     """
+
     global temp_driver_search_counter
     temp_driver_search_counter = 2  # Resets Search Counter
 
@@ -344,6 +350,7 @@ def search_for_drivers(context):
     Returns:
         None
     """
+
     global temp_driver_search_counter
     coordinates = context.dispatcher.user_data[context.job.context]["static_location"]
 

@@ -29,11 +29,15 @@ def create_login(update: Update, context: CallbackContext):
     button_labels = ["Registrieren", "Einloggen"]
     button_list = []
 
+    # Preparing and appending all buttons for being used in a InlineKeyboardMarkup
     for label in button_labels:
         button_list.append(InlineKeyboardButton(label, callback_data=label))
 
+    # Building the menu with the modules.util build_button_menu function
     reply_markup = InlineKeyboardMarkup(
         build_button_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+
+    # Sending the login menu with InlineKeyboardButtons
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text=f'Guten Tag {update.effective_user.first_name}, \n'
@@ -83,11 +87,12 @@ def ask_birthday(update: Update, context: CallbackContext):
     """
 
     global registration_data
+    # Define specific date format for further operations
     date_format = "%d.%m.%Y"
+    # Error handling
     try:
 
         datetime.datetime.strptime(update.message.text, date_format)
-
         registration_data["birthday"] = update.message.text
 
         context.bot.send_message(
@@ -125,7 +130,7 @@ def ask_car(update: Update, context: CallbackContext):
     registration_data["car"] = update.message.text
     registration_data["id"] = update.effective_user.id
 
-    # Check if user has a username
+    # Check if user has an username
     if update.effective_user.link is None:
         contact_options_keyboard = [[KeyboardButton(text="Meine Nummer senden", request_contact=True)],
                                     [KeyboardButton(text="Abbrechen")]]

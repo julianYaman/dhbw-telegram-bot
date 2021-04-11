@@ -21,10 +21,14 @@ def create_profile_options(update: Update, context: CallbackContext):
     button_labels = ["Name ändern", "Geburtsdatum ändern", "Auto ändern", "Zurück"]
     button_list = []
 
+    # Preparing and appending all buttons for being used in a InlineKeyboardMarkup
     for label in button_labels:
         button_list.append(InlineKeyboardButton(label, callback_data=label))
 
+    # Building the menu with the modules.util build_button_menu function
     reply_markup = InlineKeyboardMarkup(build_button_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+
+    # Sending the profile options menu with InlineKeyboardButtons
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Profil-Einstellungen",
@@ -44,6 +48,7 @@ def change_name(update: Update, context: CallbackContext):
     """
 
     update_name_response = update_name(update.effective_user.id, update.message.text)
+    # Error handling
     if update_name_response["error"] is True:
         if update_name_response["type"] == "UserNotFound":
             update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
@@ -74,14 +79,13 @@ def change_birthday(update: Update, context: CallbackContext):
     Returns:
         int - PROFILE_OPTIONS_QUERY_HANDLER state
     """
+    # Define specific date format for further operations
     date_format = "%d.%m.%Y"
 
     try:
-
         datetime.datetime.strptime(update.message.text, date_format)
-
         update_birthday_response = update_birthday(update.effective_user.id, update.message.text)
-
+        # Error handling
         if update_birthday_response["error"] is True:
             if update_birthday_response["type"] == "UserNotFound":
                 update.message.reply_text(
@@ -127,6 +131,7 @@ def change_car(update: Update, context: CallbackContext):
     """
 
     update_car_response = update_car(update.effective_user.id, update.message.text)
+    # Error handling
     if update_car_response["error"] is True:
         if update_car_response["type"] == "UserNotFound":
             update.message.reply_text("Leider wurde kein User mit deinem Namen gefunden. Bitte registriere dich, um den"
