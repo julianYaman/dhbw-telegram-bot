@@ -1,16 +1,18 @@
 [
     {
+        "birthday": "16.09.2000",
+        "car": "Benzer",
+        "contact_type": "phone",
+        "id": 1685943614,
+        "link": "4915903007868",
+        "name": "Gary"
+    },
+    {
         "birthday": "31.07.2001",
-        "car": "Tesla Model S",
+        "car": "Mercedes E-Klasse",
+        "contact_type": "dm_link",
         "id": 284840934,
         "link": "https://t.me/julianyaman",
         "name": "Julian"
-    },
-    {
-        "birthday": "16.09.2000",
-        "car": "Benzer",
-        "id": 1685943614,
-        "link": "https://t.me/garylude",
-        "name": "Gary"
     }
 ]

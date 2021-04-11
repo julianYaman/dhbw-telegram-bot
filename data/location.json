@@ -1,24 +1,36 @@
 [
     {
         "coordinates": {
-            "latitude": 47.955776,
-            "longitude": 9.381342
+            "latitude": 47.930364,
+            "longitude": 9.236925
         },
         "driver": true,
         "is_current_location": false,
         "is_destination": true,
         "passenger": false,
-        "user_id": 1685943614
+        "user_id": 284840934
     },
     {
         "coordinates": {
-            "latitude": 47.95233,
-            "longitude": 9.38308
+            "latitude": 47.923815,
+            "longitude": 9.25764
         },
         "driver": true,
         "is_current_location": true,
         "is_destination": false,
         "passenger": false,
-        "user_id": 1685943614
+        "user_id": 284840934
+    },
+    {
+        "coordinates": {
+            "latitude": 47.923808,
+            "longitude": 9.257711
+        },
+        "destination": "",
+        "driver": false,
+        "is_current_location": true,
+        "is_destination": false,
+        "passenger": true,
+        "user_id": 284840934
     }
 ]
