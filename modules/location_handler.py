@@ -138,7 +138,7 @@ def set_driver_destination(user_id, destination):
         destination (dist): The destination containing the longitude and the latitude of the destination
 
     Returns:
-        dist: Returns a success object containing the information if the action was successful
+        dict: Returns a success object containing the information if the action was successful
     """
 
     # Opens the location data storage file first in READ mode and then checks if there is already a destination
@@ -192,7 +192,7 @@ def set_passenger_current_location(user_id, coordinates):
         coordinates (dist): The coordinates containing the longitude and the latitude of the current live location
 
     Returns:
-        dist: Returns a success object containing the information if the action was successful
+        dict: Returns a success object containing the information if the action was successful
     """
 
     # Opens the location data storage file first in READ mode and then checks if there is already a object containing
@@ -252,7 +252,7 @@ def delete_user_location_data(user_id):
         user_id (int): The ID of the user
 
     Returns:
-        dist: Returns a success object containing the information if the action was successful
+        dict: Returns a success object containing the information if the action was successful
     """
     with open('data/location.json', 'r') as location_collection:
         try:

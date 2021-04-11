@@ -13,6 +13,16 @@ temp_bool = True
 
 
 def create_passenger_preparation_menu(update: Update, context: CallbackContext):
+    """Creates the menu which the user can use to prepare using the functions as a *passenger*.
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        None
+    """
+
     button_labels = ["Ja", "Nein", "Zurück"]
     button_list = []
 
@@ -20,7 +30,7 @@ def create_passenger_preparation_menu(update: Update, context: CallbackContext):
         button_list.append(InlineKeyboardButton(label, callback_data=label))
 
     reply_markup = InlineKeyboardMarkup(
-        build_passenger_preparation_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
+        build_button_menu(button_list, n_cols=1))  # n_cols = 1 is for single column and multiple rows
     context.bot.send_message(
         chat_id=update.effective_chat.id,
         text="Möchtest du deinen aktuellen Standort als Abholpunkt definieren?",
@@ -28,16 +38,18 @@ def create_passenger_preparation_menu(update: Update, context: CallbackContext):
     )
 
 
-def build_passenger_preparation_menu(buttons, n_cols, header_buttons=None, footer_buttons=None):
-    menu = [buttons[i:i + n_cols] for i in range(0, len(buttons), n_cols)]
-    if header_buttons:
-        menu.insert(0, header_buttons)
-    if footer_buttons:
-        menu.append(footer_buttons)
-    return menu
-
-
 def passenger_use_current_location(update: Update, context: CallbackContext):
+    """Uses the live location of the passenger and searchs drivers with it.
+    It automatically updates the search result list every 3 live location updates.
+    -> User location updates 3 times in a row -> Search result list updates
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        None or int - depending on the user action
+    """
     global temp_driver_search_counter
     coordinates = {"longitude": update.effective_message.location.longitude,
                    "latitude": update.effective_message.location.latitude}
@@ -268,6 +280,17 @@ def passenger_use_current_location(update: Update, context: CallbackContext):
 
 
 def passenger_use_other_location(update: Update, context: CallbackContext):
+    """Uses a given *static* location of the passenger and searchs drivers with it.
+    Since there is no location update like in passenger_use_current_location, it will automatically update the search
+    result list every 4.5 seconds by using JobQueues from python-telegram-bot
+
+    Args:
+        update (telegram.Update)
+        context (telegram.ext.CallbackContext)
+
+    Returns:
+        None or int - depending on the user action
+    """
     global temp_driver_search_counter
     temp_driver_search_counter = 2  # Resets Search Counter
 
@@ -313,6 +336,14 @@ def passenger_use_other_location(update: Update, context: CallbackContext):
 
 
 def search_for_drivers(context):
+    """Searches for drivers in a 15 kilometer radius as the callback for the JobQueue in passenger_use_other_location.
+
+    Args:
+        context
+
+    Returns:
+        None
+    """
     global temp_driver_search_counter
     coordinates = context.dispatcher.user_data[context.job.context]["static_location"]
 
