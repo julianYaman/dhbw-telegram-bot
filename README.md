@@ -20,8 +20,8 @@ python main.py
 
 ## Einführung
 
-hier eine kurze Einführung zum Bot bitte schreiben @Gary.
-Am besten die, von der Dokumentation.
+In dieser Arbeit soll der Prototyp einer Mitfahrzentrale konzipiert und technisch umgesetzt werden. 
+Die Mitfahrzentrale soll von den Anwendern ausschließlich ̈uber Telegram bedient werden konnen, eine Administration kann serverseitig ̈uber eine Konfigurationsdatei im Format JSON erfolgen. Fur die Anwender sollen allumfängliche Funktionen zur Nutzung der Mitfahrzentrale implementiert werden
 
 ## Installation
 
